@@ -1,3 +1,4 @@
+![Marin Kitagawa](assets/Marin_Kitagawa.webp)
 
 
 ````markdown
