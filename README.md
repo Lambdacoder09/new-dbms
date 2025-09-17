@@ -1,4 +1,4 @@
-Absolutely! Here’s a polished `.README.md` draft for your Mini-Rust-DBMS project:
+
 
 ````markdown
 # Mini-Rust-DBMS
