@@ -1,4 +1,4 @@
-![Kitagawat]([mini_rdbms/Marin_Kitagawa.webp](https://static.wikia.nocookie.net/asias-crossover-adventures/images/5/58/Profile_-_Marin_Kitagawa.png/revision/latest?cb=20241017191019))
+![Marin Kitagawa](https://static.wikia.nocookie.net/asias-crossover-adventures/images/5/58/Profile-_Marin_Kitagawa.png/revision/latest?cb=20241017191019)
 
 # Mini-Rust-DBMS
 
