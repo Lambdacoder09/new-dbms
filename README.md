@@ -1,3 +1,4 @@
+![Kitagawat]("mini_rdbms/Marin_Kitagawa.webp")
 
 ```markdown
 # Mini-Rust-DBMS
