@@ -1,12 +1,16 @@
 use crate::db::DB;
 use regex::Regex;
 
-pub fn select(query: &str) {
-    // Regex to capture table name and optional WHERE clause
-    let re = Regex::new(r"(?i)SELECT \* FROM (\w+)(?: WHERE (.+))?").unwrap();
+pub fn update(query: &str) {
+    // Regex: UPDATE table SET column=value WHERE condition
+    let re = Regex::new(r"(?i)UPDATE (\w+)\s+SET\s+(\w+)\s*=\s*'?(.*?)'?\s+WHERE\s+(.+)").unwrap();
     if let Some(cap) = re.captures(query) {
         let table_name = &cap[1];
-        let table = match DB::load_table(table_name) {
+        let set_col = &cap[2];
+        let set_value = &cap[3];
+        let where_clause = &cap[4];
+
+        let mut table = match DB::load_table(table_name) {
             Some(t) => t,
             None => {
                 println!("Table '{}' does not exist!", table_name);
@@ -14,32 +18,35 @@ pub fn select(query: &str) {
             }
         };
 
-        // Check if WHERE clause exists
-        let filtered_rows = if let Some(where_clause) = cap.get(2) {
-            apply_where(&table, where_clause.as_str())
-        } else {
-            table.rows.clone()
+        let col_index = match table.columns.iter().position(|c| c == set_col) {
+            Some(idx) => idx,
+            None => {
+                println!("Column '{}' does not exist!", set_col);
+                return;
+            }
         };
 
-        // Print results
-        println!("{}", table.columns.join(" | "));
-        println!("{}", "-".repeat(40));
-        for row in filtered_rows {
-            println!("{}", row.join(" | "));
+        let filtered_rows = apply_where(&table, where_clause);
+        for row in table.rows.iter_mut() {
+            if filtered_rows.contains(row) {
+                row[col_index] = set_value.to_string();
+            }
         }
+
+        DB::save_table(table_name, &table);
+        println!("Update completed.");
     } else {
-        println!("Invalid SELECT syntax!");
+        println!("Invalid UPDATE syntax!");
     }
 }
 
-// Apply WHERE filter (supports single condition with =, >, <, >=, <=)
+// Reuse WHERE logic
 fn apply_where(table: &crate::db::Table, clause: &str) -> Vec<Vec<String>> {
     let operators = ["<=", ">=", "<", ">", "="];
     let mut col_name = "";
     let mut op = "";
     let mut value = "";
 
-    // Parse clause
     for &operator in &operators {
         if let Some(pos) = clause.find(operator) {
             col_name = clause[..pos].trim();
@@ -51,10 +58,7 @@ fn apply_where(table: &crate::db::Table, clause: &str) -> Vec<Vec<String>> {
 
     let col_index = match table.columns.iter().position(|c| c == col_name) {
         Some(idx) => idx,
-        None => {
-            println!("Column '{}' does not exist!", col_name);
-            return vec![];
-        }
+        None => return vec![],
     };
 
     table.rows
