@@ -1,29 +1,52 @@
 
-
-````markdown
+```markdown
 # Mini-Rust-DBMS
 
-Mini-Rust-DBMS is a lightweight, terminal-based database management system written in **Rust**. It allows you to execute basic SQL-like commands such as `CREATE`, `INSERT`, `SELECT`, `UPDATE`, `DELETE`, `ALTER`, `TRUNCATE`, and `DROP` on flat-file-based tables. It’s perfect for learning, demos, or experimenting with database concepts.
+**Mini-Rust-DBMS** is a lightweight, terminal-based database management system written in **Rust**. It supports basic SQL-like operations and is designed for learning, experimentation, and small-scale demos. The system features a modern CLI with colorized output and table-like display for query results.
 
 ---
 
 ## Features
 
-- **Create tables** with any number of columns.
-- **Insert rows** with simple SQL syntax.
-- **Select queries** with optional column filtering.
-- **Update and delete rows** with `WHERE` clauses.
-- **Alter tables** to add new columns.
-- **Truncate and drop tables**.
-- **Pretty table display** for `SELECT` queries using `prettytable-rs`.
-- **Colored terminal output** for better readability using `colored`.
+- **Create Tables:** Define tables with any number of columns.
+- **Insert Rows:** Add rows using simple SQL-like syntax.
+- **Select Queries:** Fetch specific or all columns with table-formatted output.
+- **Update & Delete:** Modify or remove rows using `WHERE` clauses.
+- **Alter Tables:** Add new columns dynamically.
+- **Truncate & Drop Tables:** Clear or delete tables quickly.
+- **Transaction Support:** Basic commit and rollback functionality.
+- **Modern CLI:** Colored prompts and pretty table outputs for better readability.
+
+---
+
+## Screenshots
+
+```
+
+Welcome to Mini-Rust-DBMS!
+Type SQL commands (end with ';'). Type 'exit;' to quit.
+
+mini-rdbms> CREATE TABLE students (id, name, grade);
+Table 'students' created successfully!
+
+mini-rdbms> INSERT INTO students VALUES (1, 'Zayed', 'A');
+1 row inserted into 'students'
+
+mini-rdbms> SELECT \* FROM students;
++----+-------+-------+
+\| id | name  | grade |
++----+-------+-------+
+\| 1  | Zayed | A     |
++----+-------+-------+
+
+````
 
 ---
 
 ## Installation
 
-1. Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed.
-2. Clone this repository:
+1. Install [Rust](https://www.rust-lang.org/tools/install) if not already installed.
+2. Clone the repository:
 
 ```bash
 git clone https://github.com/yourusername/mini-rust-dbms.git
@@ -40,7 +63,8 @@ cargo run
 
 ## Usage
 
-The CLI prompts you to enter SQL-like commands:
+* Commands must end with `;`.
+* Example commands:
 
 ```sql
 CREATE TABLE students (id, name, grade);
@@ -54,16 +78,13 @@ DROP TABLE students;
 exit;
 ```
 
-* Commands must end with `;`.
-* `exit;` quits the program.
-
 ---
 
 ## Project Structure
 
 ```
 src/
- ├─ commands/      # All SQL command handlers
+ ├─ commands/      # SQL command handlers
  │   ├─ create.rs
  │   ├─ insert.rs
  │   ├─ select.rs
@@ -72,35 +93,35 @@ src/
  │   ├─ alter.rs
  │   ├─ truncate.rs
  │   └─ drop.rs
- ├─ db.rs          # Table and database structure handling
- └─ main.rs        # Entry point / CLI
+ ├─ db.rs          # Table and database handling
+ └─ main.rs        # CLI entry point
 ```
 
-* **Tables** are stored in the `db/` folder as serialized files.
-* **Transactions** are partially supported for rollback/commit (future improvement).
+* Tables are stored as serialized files in the `db/` folder.
 
 ---
 
 ## Dependencies
 
-* [`prettytable-rs`](https://crates.io/crates/prettytable-rs) – For displaying tables.
-* [`colored`](https://crates.io/crates/colored) – For colored output in the terminal.
+* [`prettytable-rs`](https://crates.io/crates/prettytable-rs) – Table display for queries.
+* [`colored`](https://crates.io/crates/colored) – Colorized terminal output.
+* [`figlet-rs`](https://crates.io/crates/figlet-rs) – Optional ASCII banners for CLI branding.
 
 ---
 
-## Planned Improvements
+## Roadmap / Planned Features
 
-* Add full transaction support with rollback.
-* Implement `CREATE INDEX` and aggregate functions.
-* Build a web-based UI for live demos.
-* Add more advanced SQL features.
+* Full transaction support.
+* CREATE INDEX and aggregate functions.
+* Web-based UI for live demos.
+* Advanced SQL operations (JOINs, subqueries).
 
 ---
 
 ## Contribution
 
-Contributions, suggestions, or bug reports are welcome!
-Feel free to fork the repo and submit a pull request.
+Contributions, bug reports, and feature suggestions are welcome!
+Fork the repository and submit a pull request or open an issue.
 
 ---
 
@@ -110,4 +131,9 @@ MIT License © 2025 Zayed Khan
 
 ```
 
+---
 
+If you want, I can also **write a shorter, visually appealing version** specifically for your **friend to make a web UI demo**, with step-by-step instructions and example screenshots embedded.  
+
+Do you want me to do that version too?
+```
