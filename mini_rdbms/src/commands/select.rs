@@ -1,9 +1,11 @@
-use crate::db::{DB};
+use crate::db::DB;
+use prettytable::{Table, Row, Cell};
+use colored::*;
 
 pub fn select(query: &str) {
     let parts: Vec<&str> = query.split_whitespace().collect();
     if parts.len() < 4 {
-        println!("Invalid SELECT syntax!");
+        println!("{}", "Invalid SELECT syntax!".bright_red().bold());
         return;
     }
 
@@ -11,32 +13,55 @@ pub fn select(query: &str) {
     let table = match DB::load_table(table_name) {
         Some(t) => t,
         None => {
-            println!("Table '{}' not found!", table_name);
+            println!("{}", format!("Table '{}' not found!", table_name).bright_red().bold());
             return;
         }
     };
 
-    let columns_to_show = if parts[1] == "*" {
+    let columns_to_show: Vec<String> = if parts[1] == "*" {
         table.columns.clone()
     } else {
         parts[1]
             .split(',')
             .map(|c| c.trim().to_string())
-            .collect::<Vec<_>>()
+            .filter(|c| table.columns.contains(c))
+            .collect()
     };
 
-    // Print header
-    println!("{}", columns_to_show.join(" | "));
+    if columns_to_show.is_empty() {
+        println!("{}", "No valid columns found to display!".bright_yellow().bold());
+        return;
+    }
 
-    // Get column indexes
     let col_indexes: Vec<usize> = columns_to_show
         .iter()
         .filter_map(|c| table.columns.iter().position(|x| x == c))
         .collect();
 
-    // Print rows
-    for row in table.rows.iter() {
-        let selected: Vec<String> = col_indexes.iter().map(|&i| row[i].clone()).collect();
-        println!("{}", selected.join(" | "));
+    let mut pretty_table = Table::new();
+
+    // Add header with bold and colored style
+    let header_cells: Vec<Cell> = columns_to_show
+        .iter()
+        .map(|c| Cell::new(c).style_spec("bFc")) // bold + foreground color cyan
+        .collect();
+    pretty_table.add_row(Row::new(header_cells));
+
+    // Add rows
+    for (i, row) in table.rows.iter().enumerate() {
+        let row_cells: Vec<Cell> = col_indexes
+            .iter()
+            .map(|&idx| {
+                let val = &row[idx];
+                if i % 2 == 0 {
+                    Cell::new(val).style_spec("Fr") // odd rows red
+                } else {
+                    Cell::new(val).style_spec("Fw") // even rows white
+                }
+            })
+            .collect();
+        pretty_table.add_row(Row::new(row_cells));
     }
+
+    pretty_table.printstd();
 }

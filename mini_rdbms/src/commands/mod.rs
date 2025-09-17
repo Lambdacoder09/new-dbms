@@ -4,7 +4,7 @@ pub mod select;
 pub mod update;
 pub mod delete;
 pub mod alter;
-pub mod drop;
+pub mod drop_table;
 pub mod truncate;
 pub mod index;
 pub mod aggregate;

@@ -1,6 +1,6 @@
 use crate::db::{DB, Table};
 
-pub fn create_table(query: &str) {
+pub fn create(query: &str) {
     let parts: Vec<&str> = query.split_whitespace().collect();
     if parts.len() < 3 {
         println!("Invalid CREATE TABLE syntax!");

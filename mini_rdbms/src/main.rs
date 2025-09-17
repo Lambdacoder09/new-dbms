@@ -3,13 +3,23 @@ mod commands;
 
 use commands::*;
 use std::io::{self, Write};
+use colored::*;
+use prettytable::{Table, Row, Cell}; // For table display
+use figlet_rs::FIGfont;               // For ASCII banners
 
 fn main() {
-    println!("Welcome to Mini-Rust-DBMS!");
-    println!("Type SQL commands (end with ';'). Type 'exit;' to quit.");
+    // ASCII banner
+    let standard_font = FIGfont::standard().unwrap();
+    let figure = standard_font.convert("Mini-Rust-DBMS");
+    if let Some(figure) = figure {
+        println!("{}", figure.to_string().bright_green());
+    }
+
+    println!("{}", "Type SQL commands (end with ';'). Type 'exit;' to quit.".bright_blue());
 
     loop {
-        print!("mini-rdbms> ");
+        // Stylish prompt
+        print!("{}", "mini-rdbms> ".bright_yellow().bold());
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
@@ -17,7 +27,7 @@ fn main() {
         let input = input.trim();
 
         if input.eq_ignore_ascii_case("exit;") {
-            println!("Bye!");
+            println!("{}", "Bye!".bright_red().bold());
             break;
         }
 
@@ -25,30 +35,49 @@ fn main() {
             continue;
         }
 
-        // Route command to correct handler
-        process_command(input);
+        let first_word = input
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .to_uppercase();
+
+        match first_word.as_str() {
+            "CREATE" => crate::commands::create::create(input),
+            "INSERT" => crate::commands::insert::insert(input),
+            "SELECT" => select_with_table(input),
+            "UPDATE" => crate::commands::update::update(input),
+            "DELETE" => crate::commands::delete::delete(input),
+            "ALTER" => crate::commands::alter::alter(input),
+            "TRUNCATE" => crate::commands::truncate::truncate(input),
+            "DROP" => crate::commands::drop::drop_table(input),
+            _ => println!("{}", format!("Unsupported command: {}", input).bright_red()),
+        }
     }
 }
 
-fn process_command(command: &str) {
-    let cmd_upper = command.to_uppercase();
-    if cmd_upper.starts_with("CREATE TABLE") {
-        create::create(command);
-    } else if cmd_upper.starts_with("INSERT INTO") {
-        insert::insert(command);
-    } else if cmd_upper.starts_with("SELECT") {
-        select::select(command);
-    } else if cmd_upper.starts_with("UPDATE") {
-        update::update(command);
-    } else if cmd_upper.starts_with("DELETE FROM") {
-        delete::delete(command);
-    } else if cmd_upper.starts_with("ALTER TABLE") {
-        alter::alter(command);
-    } else if cmd_upper.starts_with("TRUNCATE TABLE") {
-        truncate::truncate(command);
-    } else if cmd_upper.starts_with("DROP TABLE") {
-        drop::drop(command); // <- match your drop.rs function
-    } else {
-        println!("Unsupported command: {}", command);
+// Display SELECT results in a pretty table
+fn select_with_table(query: &str) {
+    // Load results using your existing select function (or modify to return Vec of rows)
+    let results = crate::commands::select::select_return_rows(query);
+
+    if results.is_empty() {
+        println!("{}", "No records found.".bright_yellow());
+        return;
     }
+
+    let mut table = Table::new();
+
+    // Add headers
+    if let Some(headers) = results.first() {
+        let header_cells: Vec<Cell> = headers.iter().map(|h| Cell::new(h)).collect();
+        table.add_row(Row::new(header_cells));
+    }
+
+    // Add rows
+    for row in results.iter().skip(1) {
+        let row_cells: Vec<Cell> = row.iter().map(|c| Cell::new(c)).collect();
+        table.add_row(Row::new(row_cells));
+    }
+
+    table.printstd();
 }
