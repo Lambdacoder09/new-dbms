@@ -1,64 +1,52 @@
-use crate::db::DB;
-use regex::Regex;
+use crate::db::{DB};
 
 pub fn delete(query: &str) {
-    let re = Regex::new(r"(?i)DELETE FROM (\w+)\s+WHERE\s+(.+)").unwrap();
-    if let Some(cap) = re.captures(query) {
-        let table_name = &cap[1];
-        let where_clause = &cap[2];
-
-        let mut table = match DB::load_table(table_name) {
-            Some(t) => t,
-            None => {
-                println!("Table '{}' does not exist!", table_name);
-                return;
-            }
-        };
-
-        let filtered_rows = apply_where(&table, where_clause);
-        table.rows.retain(|row| !filtered_rows.contains(row));
-
-        DB::save_table(table_name, &table);
-        println!("Delete completed.");
-    } else {
+    let parts: Vec<&str> = query.split_whitespace().collect();
+    if parts.len() < 3 {
         println!("Invalid DELETE syntax!");
+        return;
     }
-}
 
-// Reuse WHERE logic
-fn apply_where(table: &crate::db::Table, clause: &str) -> Vec<Vec<String>> {
-    let operators = ["<=", ">=", "<", ">", "="];
-    let mut col_name = "";
-    let mut op = "";
-    let mut value = "";
-
-    for &operator in &operators {
-        if let Some(pos) = clause.find(operator) {
-            col_name = clause[..pos].trim();
-            op = operator;
-            value = clause[pos + operator.len()..].trim().trim_matches('\'');
-            break;
+    let table_name = parts[2];
+    let table = match DB::load_table(table_name) {
+        Some(t) => t,
+        None => {
+            println!("Table '{}' not found!", table_name);
+            return;
         }
-    }
-
-    let col_index = match table.columns.iter().position(|c| c == col_name) {
-        Some(idx) => idx,
-        None => return vec![],
     };
 
-    table.rows
-        .iter()
-        .filter(|row| {
-            let cell = &row[col_index];
-            match op {
-                "=" => cell == value,
-                ">" => cell.parse::<f64>().ok() > value.parse::<f64>().ok(),
-                "<" => cell.parse::<f64>().ok() < value.parse::<f64>().ok(),
-                ">=" => cell.parse::<f64>().ok() >= value.parse::<f64>().ok(),
-                "<=" => cell.parse::<f64>().ok() <= value.parse::<f64>().ok(),
-                _ => false,
+    let mut table = table;
+
+    // Filter rows by WHERE clause if exists
+    let mut remaining_rows = table.rows.clone();
+    if query.to_uppercase().contains("WHERE") {
+        let where_pos = query.to_uppercase().find("WHERE").unwrap();
+        let cond_str = query[where_pos + 5..].trim();
+        let cond_parts: Vec<&str> = cond_str.split_whitespace().collect();
+        if cond_parts.len() == 3 {
+            let col_name = cond_parts[0];
+            let operator = cond_parts[1];
+            let value = cond_parts[2].trim_matches('\'');
+
+            if let Some(col_index) = table.columns.iter().position(|c| c == col_name) {
+                remaining_rows = remaining_rows.into_iter().filter(|row| {
+                    let cell = &row[col_index];
+                    match operator {
+                        "=" => cell != value,
+                        ">" => cell.parse::<f64>().unwrap_or(0.0) <= value.parse::<f64>().unwrap_or(0.0),
+                        "<" => cell.parse::<f64>().unwrap_or(0.0) >= value.parse::<f64>().unwrap_or(0.0),
+                        _ => true,
+                    }
+                }).collect();
             }
-        })
-        .cloned()
-        .collect()
+        }
+    } else {
+        remaining_rows.clear(); // DELETE all
+    }
+
+    let deleted_count = table.rows.len() - remaining_rows.len();
+    table.rows = remaining_rows;
+    DB::save_table(&table);
+    println!("Deleted {} rows.", deleted_count);
 }

@@ -1,75 +1,42 @@
-use crate::db::DB;
-use regex::Regex;
+use crate::db::{DB};
 
 pub fn select(query: &str) {
-    // Regex to capture table name and optional WHERE clause
-    let re = Regex::new(r"(?i)SELECT \* FROM (\w+)(?: WHERE (.+))?").unwrap();
-    if let Some(cap) = re.captures(query) {
-        let table_name = &cap[1];
-        let table = match DB::load_table(table_name) {
-            Some(t) => t,
-            None => {
-                println!("Table '{}' does not exist!", table_name);
-                return;
-            }
-        };
-
-        // Check if WHERE clause exists
-        let filtered_rows = if let Some(where_clause) = cap.get(2) {
-            apply_where(&table, where_clause.as_str())
-        } else {
-            table.rows.clone()
-        };
-
-        // Print results
-        println!("{}", table.columns.join(" | "));
-        println!("{}", "-".repeat(40));
-        for row in filtered_rows {
-            println!("{}", row.join(" | "));
-        }
-    } else {
+    let parts: Vec<&str> = query.split_whitespace().collect();
+    if parts.len() < 4 {
         println!("Invalid SELECT syntax!");
-    }
-}
-
-// Apply WHERE filter (supports single condition with =, >, <, >=, <=)
-fn apply_where(table: &crate::db::Table, clause: &str) -> Vec<Vec<String>> {
-    let operators = ["<=", ">=", "<", ">", "="];
-    let mut col_name = "";
-    let mut op = "";
-    let mut value = "";
-
-    // Parse clause
-    for &operator in &operators {
-        if let Some(pos) = clause.find(operator) {
-            col_name = clause[..pos].trim();
-            op = operator;
-            value = clause[pos + operator.len()..].trim().trim_matches('\'');
-            break;
-        }
+        return;
     }
 
-    let col_index = match table.columns.iter().position(|c| c == col_name) {
-        Some(idx) => idx,
+    let table_name = parts[3];
+    let table = match DB::load_table(table_name) {
+        Some(t) => t,
         None => {
-            println!("Column '{}' does not exist!", col_name);
-            return vec![];
+            println!("Table '{}' not found!", table_name);
+            return;
         }
     };
 
-    table.rows
+    let columns_to_show = if parts[1] == "*" {
+        table.columns.clone()
+    } else {
+        parts[1]
+            .split(',')
+            .map(|c| c.trim().to_string())
+            .collect::<Vec<_>>()
+    };
+
+    // Print header
+    println!("{}", columns_to_show.join(" | "));
+
+    // Get column indexes
+    let col_indexes: Vec<usize> = columns_to_show
         .iter()
-        .filter(|row| {
-            let cell = &row[col_index];
-            match op {
-                "=" => cell == value,
-                ">" => cell.parse::<f64>().ok() > value.parse::<f64>().ok(),
-                "<" => cell.parse::<f64>().ok() < value.parse::<f64>().ok(),
-                ">=" => cell.parse::<f64>().ok() >= value.parse::<f64>().ok(),
-                "<=" => cell.parse::<f64>().ok() <= value.parse::<f64>().ok(),
-                _ => false,
-            }
-        })
-        .cloned()
-        .collect()
+        .filter_map(|c| table.columns.iter().position(|x| x == c))
+        .collect();
+
+    // Print rows
+    for row in table.rows.iter() {
+        let selected: Vec<String> = col_indexes.iter().map(|&i| row[i].clone()).collect();
+        println!("{}", selected.join(" | "));
+    }
 }

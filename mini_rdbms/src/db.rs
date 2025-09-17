@@ -1,12 +1,10 @@
-use serde::{Serialize, Deserialize};
-use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::fs::{self, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
-const DB_FOLDER: &str = "data";
-
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Table {
+    pub name: String,
     pub columns: Vec<String>,
     pub rows: Vec<Vec<String>>,
 }
@@ -15,30 +13,82 @@ pub struct DB;
 
 impl DB {
     pub fn init() {
-        if !Path::new(DB_FOLDER).exists() {
-            fs::create_dir(DB_FOLDER).unwrap();
+        fs::create_dir_all("tables").unwrap();
+    }
+
+    pub fn save_table(table: &Table) {
+        // Save metadata
+        let meta_path = format!("tables/{}.meta", table.name);
+        fs::write(&meta_path, table.columns.join(",")).unwrap();
+
+        // Save rows
+        let data_path = format!("tables/{}.data", table.name);
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&data_path)
+            .unwrap();
+
+        for row in &table.rows {
+            writeln!(file, "{}", row.join(",")).unwrap();
         }
     }
 
-    pub fn table_path(table_name: &str) -> String {
-        format!("{}/{}.json", DB_FOLDER, table_name)
-    }
+    pub fn load_table(name: &str) -> Option<Table> {
+        let meta_path = format!("tables/{}.meta", name);
+        let data_path = format!("tables/{}.data", name);
 
-    pub fn load_table(table_name: &str) -> Option<Table> {
-        let path = DB::table_path(table_name);
-        if !Path::new(&path).exists() {
+        if !Path::new(&meta_path).exists() || !Path::new(&data_path).exists() {
             return None;
         }
-        let mut file = File::open(&path).unwrap();
-        let mut data = String::new();
-        file.read_to_string(&mut data).unwrap();
-        Some(serde_json::from_str(&data).unwrap())
+
+        let columns = fs::read_to_string(meta_path)
+            .unwrap()
+            .trim()
+            .split(',')
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+
+        let file = OpenOptions::new().read(true).open(data_path).unwrap();
+        let reader = BufReader::new(file);
+
+        let mut rows = vec![];
+        for line in reader.lines() {
+            let row = line.unwrap()
+                .split(',')
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>();
+            rows.push(row);
+        }
+
+        Some(Table {
+            name: name.to_string(),
+            columns,
+            rows,
+        })
     }
 
-    pub fn save_table(table_name: &str, table: &Table) {
-        let path = DB::table_path(table_name);
-        let data = serde_json::to_string_pretty(&table).unwrap();
-        let mut file = File::create(&path).unwrap();
-        file.write_all(data.as_bytes()).unwrap();
+    pub fn list_tables() -> Vec<String> {
+        let mut tables = vec![];
+        if let Ok(entries) = fs::read_dir("tables") {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Some(ext) = path.extension() {
+                    if ext == "meta" {
+                        if let Some(stem) = path.file_stem() {
+                            tables.push(stem.to_string_lossy().to_string());
+                        }
+                    }
+                }
+            }
+        }
+        tables
+    }
+}
+
+impl DB {
+    pub fn table_path(table_name: &str) -> String {
+        format!("tables/{}.json", table_name)
     }
 }
