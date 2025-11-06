@@ -6,7 +6,7 @@
 </p>
 
 <h2 align="center">
-  <em>Dedicated to my love for gyarus and anime waifus — for giving my life a new spark and purpose.</em>
+  <em>Dedicated to my love for gyarus and anime waifus <br> — for giving my life a new spark and purpose.</em>
 </h2>
 
 ---
