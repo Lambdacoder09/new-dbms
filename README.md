@@ -1,6 +1,6 @@
 
 
-````markdown
+
 <p align="center">
   <img src="assets/Marin_Kitagawa.webp" alt="Marin Kitagawa" width="180">
 </p>
