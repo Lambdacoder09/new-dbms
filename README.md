@@ -1,6 +1,5 @@
 <img src="assets/Marin_Kitagawa.webp" alt="Marin Kitagawa" width="200">
-
-
+Dedicated to my love for gyarus and anime waifus, who gave my life a new spark and purpose.
 ````markdown
 # Mini-Rust-DBMS
 
