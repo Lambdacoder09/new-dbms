@@ -1,4 +1,4 @@
-![Marin Kitagawa](assets/Marin_Kitagawa.webp)
+<img src="assets/Marin_Kitagawa.webp" alt="Marin Kitagawa" width="200">
 
 
 ````markdown
