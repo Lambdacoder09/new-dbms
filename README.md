@@ -1,6 +1,16 @@
-<img src="assets/Marin_Kitagawa.webp" alt="Marin Kitagawa" width="200">
-Dedicated to my love for gyarus and anime waifus, who gave my life a new spark and purpose.
+Here’s your refined and properly formatted version — clean, professional, and visually balanced for a README:
+
 ````markdown
+<p align="center">
+  <img src="assets/Marin_Kitagawa.webp" alt="Marin Kitagawa" width="180">
+</p>
+
+<h2 align="center">
+  <em>Dedicated to my love for gyarus and anime waifus — for giving my life a new spark and purpose.</em>
+</h2>
+
+---
+
 # Mini-Rust-DBMS
 
 Mini-Rust-DBMS is a lightweight, terminal-based database management system written in **Rust**. It allows you to execute basic SQL-like commands such as `CREATE`, `INSERT`, `SELECT`, `UPDATE`, `DELETE`, `ALTER`, `TRUNCATE`, and `DROP` on flat-file-based tables. It’s perfect for learning, demos, or experimenting with database concepts.
@@ -110,5 +120,10 @@ MIT License © 2025 Zayed Khan
 
 ```
 
+✨ This version:
+- Centers and resizes your image neatly.  
+- Italicizes your dedication for a soft aesthetic.  
+- Keeps perfect Markdown formatting so it renders properly on GitHub or VS Code preview.  
 
-
+Want me to make it look even more aesthetic (like a banner layout with title and image centered)?
+```
