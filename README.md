@@ -16,7 +16,7 @@
 Mini-Rust-DBMS is a lightweight, terminal-based database management system written in **Rust**. It allows you to execute basic SQL-like commands such as `CREATE`, `INSERT`, `SELECT`, `UPDATE`, `DELETE`, `ALTER`, `TRUNCATE`, and `DROP` on flat-file-based tables. It’s perfect for learning, demos, or experimenting with database concepts.
 
 ---
-
+ppt to explain <a src="https://docs.google.com/presentation/d/1cmjoWY82dxKmX8WCkEZP8qZ31fT7Gt8Q/edit?usp=drive_link&ouid=105216507452754870536&rtpof=true&sd=true"></a>
 ## Features
 
 - **Create tables** with any number of columns.
